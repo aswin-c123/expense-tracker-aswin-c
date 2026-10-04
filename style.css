@@ -1,0 +1,327 @@
+/* ---------- 1. Design tokens (colours, spacing) ---------- */
+:root {
+  --bg: #FEFBEA;
+  --surface: #ffffff;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --primary: #1D776D;
+  --primary-dark: #3e3694;
+  --income: #16a34a;
+  --expense: #dc2626;
+  --radius: 12px;
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* ---------- 2. Reset and base ---------- */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+body {
+  font-family: "Lato", system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+}
+
+header {
+  background: var(--primary);
+  color: #fff;
+  text-align: center;
+  padding: 1.25rem 1rem;
+}
+
+main {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 1rem;
+  display: grid;
+  gap: 1rem;
+}
+
+h2 {
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
+}
+
+/* ---------- 3. Shared "panel" look ---------- */
+.card,
+.form-section,
+.filters,
+.list-section,
+.monthly,
+.chart-box {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1rem;
+}
+
+/* ---------- 4. Summary cards ---------- */
+.summary {
+  display: grid;
+  gap: 0.75rem; /* mobile: stacked */
+}
+
+.card h3 {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.card h3 i {
+  font-size: 0.9rem;
+}
+
+.card p {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-top: 0.25rem;
+}
+
+.card.income { border-left: 5px solid var(--income); }
+.card.income p { color: var(--income); }
+
+.card.expense { border-left: 5px solid var(--expense); }
+.card.expense p { color: var(--expense); }
+
+.card.balance { border-left: 5px solid var(--primary); }
+
+/* ---------- 5. Form ---------- */
+#transaction-form {
+  display: grid;
+  gap: 0.9rem; /* mobile: one column */
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+}
+
+input,
+select {
+  font: inherit;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  width: 100%;
+}
+
+input:focus,
+select:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+  border-color: var(--primary);
+}
+
+/* Error state (JavaScript will add the "invalid" class in Step 6) */
+.field.invalid input,
+.field.invalid select {
+  border-color: var(--expense);
+}
+
+.error {
+  color: var(--expense);
+  font-size: 0.8rem;
+  min-height: 1.1rem; /* reserves space so the layout doesn't jump */
+  margin-top: 0.25rem;
+}
+
+.actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+  border: none;
+  border-radius: 8px;
+  padding: 0.7rem 1.2rem;
+  font-weight: 600;
+}
+
+#submit-btn {
+  background: var(--primary);
+  color: #fff;
+  flex: 1;
+}
+
+#submit-btn:hover { background: var(--primary-dark); }
+
+#cancel-btn {
+  background: var(--border);
+  color: var(--text);
+}
+
+.message {
+  margin-top: 0.75rem;
+  font-weight: 600;
+  color: var(--income);
+}
+
+/* ---------- 6. Icons (Font Awesome) ---------- */
+i.fa-solid {
+  margin-right: 0.35rem;
+}
+
+.btn-edit i,
+.btn-delete i {
+  margin-right: 0.3rem;
+}
+
+/* ---------- 7. Filters ---------- */
+.filters {
+  display: grid;
+  gap: 0.75rem; /* mobile: stacked */
+}
+
+/* ---------- 8. Transaction list ---------- */
+#transaction-list {
+  list-style: none;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.transaction {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.25rem 0.75rem;
+  padding: 0.8rem;
+  border: 1px solid var(--border);
+  border-left: 5px solid var(--border);
+  border-radius: 8px;
+}
+
+.transaction.income { border-left-color: var(--income); }
+.transaction.expense { border-left-color: var(--expense); }
+
+.t-desc { font-weight: 600; }
+
+.t-meta {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.t-amount {
+  font-weight: 700;
+  text-align: right;
+  grid-row: 1;
+  grid-column: 2;
+}
+
+.transaction.income .t-amount { color: var(--income); }
+.transaction.expense .t-amount { color: var(--expense); }
+
+.t-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
+}
+
+.t-actions button {
+  padding: 0.35rem 0.8rem;
+  font-size: 0.8rem;
+}
+
+.btn-edit { background: #e0e7ff; color: var(--primary-dark); }
+.btn-delete { background: #fee2e2; color: var(--expense); }
+
+#empty-state {
+  color: var(--muted);
+  text-align: center;
+  padding: 1rem 0;
+}
+
+/* ---------- 9. Monthly summary and chart ---------- */
+.insights {
+  display: grid;
+  gap: 1rem; /* mobile: stacked */
+}
+
+.month-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.25rem 1rem;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.9rem;
+}
+
+.month-row strong { grid-column: 1 / -1; }
+
+.chart-box canvas {
+  max-width: 100%;
+  max-height: 280px;
+  margin: 0 auto;
+}
+
+#category-breakdown {
+  list-style: none;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+#category-breakdown li {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ---------- 10. Tablet and desktop (min-width media queries) ---------- */
+@media (min-width: 640px) {
+  .summary {
+    grid-template-columns: repeat(3, 1fr); /* three cards in a row */
+  }
+
+  #transaction-form {
+    grid-template-columns: 1fr 1fr; /* two columns */
+  }
+
+  .full {
+    grid-column: 1 / -1; /* description and buttons span both */
+  }
+
+  .filters {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .transaction {
+    grid-template-columns: 1fr auto auto; /* info | amount | buttons */
+    align-items: center;
+  }
+
+  .t-amount {
+    grid-row: auto;
+    grid-column: auto;
+  }
+
+  .t-actions {
+    grid-column: auto;
+    margin-top: 0;
+  }
+}
+
+@media (min-width: 900px) {
+  .insights {
+    grid-template-columns: 1fr 1fr; /* monthly summary beside chart */
+  }
+}
