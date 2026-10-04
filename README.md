@@ -2,6 +2,8 @@
 
 A simple, responsive expense tracker built with plain **HTML, CSS and JavaScript**. No frameworks or build tools. Data is saved in the browser's Local Storage, so it stays after a page refresh.
 
+Live demo: https://expense-tracker-aswin-c.vercel.app/
+
 ## How to run
 
 1. Download or clone this repository:
