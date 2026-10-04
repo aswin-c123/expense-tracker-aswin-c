@@ -1,6 +1,6 @@
 /* =========================================================
    Expense Tracker - script.js
-   Steps 3-4: add, edit, delete, save to Local Storage, show list
+   Steps 3-5: add, edit, delete, filters, Local Storage, list
    ========================================================= */
 
 /* ---------- 1. Constants ---------- */
@@ -26,6 +26,9 @@ const message = document.getElementById("message");
 const formTitle = document.getElementById("form-title");
 const submitBtn = document.getElementById("submit-btn");
 const cancelBtn = document.getElementById("cancel-btn");
+
+const filterType = document.getElementById("filter-type");
+const filterCategory = document.getElementById("filter-category");
 
 const totalIncomeEl = document.getElementById("total-income");
 const totalExpenseEl = document.getElementById("total-expense");
@@ -219,12 +222,12 @@ list.addEventListener("click", (event) => {
 });
 
 /* ---------- 8. Rendering ---------- */
-function renderSummary() {
-  const totalIncome = transactions
+function renderSummary(items) {
+  const totalIncome = items
     .filter((t) => t.type === "income")
     .reduce((sum, t) => sum + t.amount, 0);
 
-  const totalExpense = transactions
+  const totalExpense = items
     .filter((t) => t.type === "expense")
     .reduce((sum, t) => sum + t.amount, 0);
 
@@ -233,9 +236,9 @@ function renderSummary() {
   balanceEl.textContent = formatCurrency(totalIncome - totalExpense);
 }
 
-function renderList() {
+function renderList(items) {
   // Newest date first; if dates match, newest added first
-  const sorted = [...transactions].sort(
+  const sorted = [...items].sort(
     (a, b) => b.date.localeCompare(a.date) || b.id - a.id
   );
 
@@ -258,15 +261,54 @@ function renderList() {
     )
     .join("");
 
-  emptyState.hidden = transactions.length > 0;
+  // Two different empty messages: nothing saved yet vs nothing matches the filters
+  emptyState.textContent =
+    transactions.length === 0
+      ? "No transactions yet."
+      : "No transactions match your filters.";
+  emptyState.hidden = items.length > 0;
 }
 
 function render() {
-  renderSummary();
-  renderList();
+  const filtered = getFilteredTransactions();
+  renderSummary(filtered);
+  renderList(filtered);
 }
+
+/* ---------- 8b. Filters ---------- */
+function getFilteredTransactions() {
+  return transactions.filter(
+    (t) =>
+      (filterType.value === "all" || t.type === filterType.value) &&
+      (filterCategory.value === "all" || t.category === filterCategory.value)
+  );
+}
+
+function populateFilterCategories() {
+  // "All types" shows every category; income or expense shows only its own
+  const names =
+    filterType.value === "all"
+      ? [...CATEGORIES.income, ...CATEGORIES.expense]
+      : CATEGORIES[filterType.value];
+
+  filterCategory.innerHTML = '<option value="all">All categories</option>';
+  names.forEach((name) => {
+    const option = document.createElement("option");
+    option.value = name;
+    option.textContent = name;
+    filterCategory.appendChild(option);
+  });
+}
+
+filterType.addEventListener("change", () => {
+  populateFilterCategories(); // also resets the category filter to "All"
+  render();
+});
+
+filterCategory.addEventListener("change", render);
 
 /* ---------- 9. Start the app ---------- */
 dateInput.value = todayString();
 populateCategories("");
+populateFilterCategories();
 render();
