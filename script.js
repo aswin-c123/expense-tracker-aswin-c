@@ -1,6 +1,7 @@
 /* =========================================================
    Expense Tracker - script.js
-   Steps 3-6: add, edit, delete, filters, validation, Local Storage
+   Steps 3-7: add, edit, delete, filters, validation, Local Storage,
+   monthly summary and category chart
    ========================================================= */
 
 /* ---------- 1. Constants ---------- */
@@ -10,6 +11,12 @@ const CATEGORIES = {
   income: ["Salary", "Freelance", "Gift", "Other Income"],
   expense: ["Food", "Travel", "Bills", "Shopping", "Health", "Entertainment", "Other"]
 };
+
+// Slice colours for the category chart (one per category, in order)
+const CHART_COLORS = [
+  "#4f46e5", "#16a34a", "#f59e0b", "#dc2626", "#0ea5e9",
+  "#a855f7", "#14b8a6", "#f97316", "#64748b", "#ec4899"
+];
 
 /* ---------- 2. Grab the HTML elements we need ---------- */
 const form = document.getElementById("transaction-form");
@@ -30,6 +37,10 @@ const cancelBtn = document.getElementById("cancel-btn");
 const filterType = document.getElementById("filter-type");
 const filterCategory = document.getElementById("filter-category");
 
+const monthlySummaryEl = document.getElementById("monthly-summary");
+const chartCanvas = document.getElementById("category-chart");
+const breakdownList = document.getElementById("category-breakdown");
+
 const totalIncomeEl = document.getElementById("total-income");
 const totalExpenseEl = document.getElementById("total-expense");
 const balanceEl = document.getElementById("balance");
@@ -37,6 +48,7 @@ const balanceEl = document.getElementById("balance");
 /* ---------- 3. App state (the single source of truth) ---------- */
 let transactions = loadTransactions();
 let editingId = null; // null = adding a new transaction, otherwise the id being edited
+let categoryChart = null; // holds the Chart.js chart so we can destroy it before redrawing
 
 /* ---------- 4. Local Storage ---------- */
 function loadTransactions() {
@@ -346,6 +358,120 @@ function render() {
   const filtered = getFilteredTransactions();
   renderSummary(filtered);
   renderList(filtered);
+  renderCategoryChart(filtered); // follows the filters
+  renderMonthlySummary();        // always uses all transactions
+}
+
+/* ---------- 8a. Monthly summary ---------- */
+function formatMonth(key) {
+  // key looks like "2026-10"
+  return new Date(key + "-01T00:00:00").toLocaleDateString("en-IN", {
+    month: "long",
+    year: "numeric"
+  });
+}
+
+function renderMonthlySummary() {
+  if (transactions.length === 0) {
+    monthlySummaryEl.innerHTML = '<p class="empty-note">No data yet.</p>';
+    return;
+  }
+
+  // Group the totals by month: { "2026-10": { income: 0, expense: 0 }, ... }
+  const months = {};
+  transactions.forEach((t) => {
+    const key = t.date.slice(0, 7); // "YYYY-MM"
+    if (!months[key]) months[key] = { income: 0, expense: 0 };
+    months[key][t.type] += t.amount;
+  });
+
+  // Newest month first
+  monthlySummaryEl.innerHTML = Object.keys(months)
+    .sort()
+    .reverse()
+    .map((key) => {
+      const m = months[key];
+      return `
+        <div class="month-row">
+          <strong>${formatMonth(key)}</strong>
+          <span class="m-income">Income: ${formatCurrency(m.income)}</span>
+          <span class="m-expense">Expenses: ${formatCurrency(m.expense)}</span>
+          <span class="m-balance">Balance: ${formatCurrency(m.income - m.expense)}</span>
+        </div>`;
+    })
+    .join("");
+}
+
+/* ---------- 8b. Category chart ---------- */
+function renderCategoryChart(items) {
+  // Add up expenses per category: { Food: 500, Travel: 1200, ... }
+  const totals = {};
+  items
+    .filter((t) => t.type === "expense")
+    .forEach((t) => {
+      totals[t.category] = (totals[t.category] || 0) + t.amount;
+    });
+
+  // Biggest category first
+  const labels = Object.keys(totals).sort((a, b) => totals[b] - totals[a]);
+  const values = labels.map((label) => totals[label]);
+  const grandTotal = values.reduce((sum, v) => sum + v, 0);
+
+  // Always destroy the old chart before drawing a new one
+  if (categoryChart) {
+    categoryChart.destroy();
+    categoryChart = null;
+  }
+
+  // Nothing to show
+  if (labels.length === 0) {
+    chartCanvas.hidden = true;
+    breakdownList.innerHTML = "<li>No expense data to show.</li>";
+    return;
+  }
+
+  // Text breakdown (also works if the chart library fails to load)
+  breakdownList.innerHTML = labels
+    .map(
+      (label, i) => `
+      <li>
+        <span>${escapeHTML(label)}</span>
+        <span>${formatCurrency(values[i])} (${((values[i] / grandTotal) * 100).toFixed(1)}%)</span>
+      </li>`
+    )
+    .join("");
+
+  // Chart.js comes from a CDN, so check it actually loaded
+  if (typeof Chart === "undefined") {
+    chartCanvas.hidden = true;
+    return;
+  }
+
+  chartCanvas.hidden = false;
+  categoryChart = new Chart(chartCanvas, {
+    type: "doughnut",
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          data: values,
+          backgroundColor: labels.map((_, i) => CHART_COLORS[i % CHART_COLORS.length]),
+          borderWidth: 2,
+          borderColor: "#ffffff"
+        }
+      ]
+    },
+    options: {
+      plugins: {
+        legend: { position: "bottom" },
+        tooltip: {
+          callbacks: {
+            label: (context) => ` ${context.label}: ${formatCurrency(context.parsed)}`
+          }
+        }
+      }
+    }
+  });
 }
 
 /* ---------- 8b. Filters ---------- */

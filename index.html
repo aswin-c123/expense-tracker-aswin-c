@@ -4,27 +4,38 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Expense Tracker</title>
-  
+
+  <!-- Google Font (text) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome (icons) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header>
-    <h1>Expense Tracker</h1>
+    <h1><i class="fa-solid fa-wallet"></i> Expense Tracker</h1>
+    <p>
+       aswinc1235@gmail.com
+    </p>
   </header>
 
   <main>
     <!-- 1. Summary cards -->
     <section class="summary">
       <div class="card income">
-        <h3>Total Income</h3>
+        <h3><i class="fa-solid fa-arrow-trend-up"></i> Total Income</h3>
         <p id="total-income">₹0.00</p>
       </div>
       <div class="card expense">
-        <h3>Total Expenses</h3>
+        <h3><i class="fa-solid fa-arrow-trend-down"></i> Total Expenses</h3>
         <p id="total-expense">₹0.00</p>
       </div>
       <div class="card balance">
-        <h3>Balance</h3>
+        <h3><i class="fa-solid fa-scale-balanced"></i> Balance</h3>
         <p id="balance">₹0.00</p>
       </div>
     </section>
@@ -58,7 +69,7 @@
         </div>
 
         <div class="field">
-          <label for="date">Date</label>
+          <label for="date"><i class="fa-solid fa-calendar"></i> Date</label>
           <input type="date" id="date">
           <small class="error" id="date-error"></small>
         </div>
@@ -70,8 +81,8 @@
         </div>
 
         <div class="actions full">
-          <button type="submit" id="submit-btn">Add Transaction</button>
-          <button type="button" id="cancel-btn" hidden>Cancel Edit</button>
+          <button type="submit" id="submit-btn"><i class="fa-solid fa-plus"></i> Add Transaction</button>
+          <button type="button" id="cancel-btn" hidden><i class="fa-solid fa-xmark"></i> Cancel Edit</button>
         </div>
       </form>
       <p id="message" class="message"></p>
@@ -91,7 +102,7 @@
 
     <!-- 4. Transaction list -->
     <section class="list-section">
-      <h2>Transactions</h2>
+      <h2><i class="fa-solid fa-list"></i> Transactions</h2>
       <ul id="transaction-list"></ul>
       <p id="empty-state">No transactions yet.</p>
     </section>
@@ -99,12 +110,14 @@
     <!-- 5. Monthly summary + chart (bonus) -->
     <section class="insights">
       <div class="monthly">
-        <h2>Monthly Summary</h2>
+        <h2><i class="fa-solid fa-calendar-days"></i> Monthly Summary</h2>
         <div id="monthly-summary"></div>
       </div>
       <div class="chart-box">
-        <h2>Expenses by Category</h2>
-        <canvas id="category-chart"></canvas>
+        <h2><i class="fa-solid fa-chart-pie"></i> Expenses by Category</h2>
+        <div class="chart-wrap">
+          <canvas id="category-chart"></canvas>
+        </div>
         <ul id="category-breakdown"></ul>
       </div>
     </section>
