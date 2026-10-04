@@ -1,6 +1,6 @@
 /* =========================================================
    Expense Tracker - script.js
-   Steps 3-5: add, edit, delete, filters, Local Storage, list
+   Steps 3-6: add, edit, delete, filters, validation, Local Storage
    ========================================================= */
 
 /* ---------- 1. Constants ---------- */
@@ -112,9 +112,92 @@ typeInput.addEventListener("change", () => {
   populateCategories(typeInput.value);
 });
 
+/* ---------- 6b. Validation ---------- */
+const fields = {
+  type: typeInput,
+  amount: amountInput,
+  category: categoryInput,
+  date: dateInput,
+  description: descriptionInput
+};
+
+// Checks every field and returns an object like { amount: "message", date: "message" }.
+// An empty object means the form is valid.
+function validateForm() {
+  const errors = {};
+
+  if (!typeInput.value) {
+    errors.type = "Please select income or expense.";
+  }
+
+  const amountText = amountInput.value.trim();
+  const amount = parseFloat(amountText);
+  if (amountText === "") {
+    errors.amount = "Please enter an amount.";
+  } else if (isNaN(amount) || amount <= 0) {
+    errors.amount = "Enter an amount greater than 0.";
+  } else if (amount > 1000000000) {
+    errors.amount = "That amount is too large.";
+  } else if (!/^(\d+|\d*\.\d{1,2})$/.test(amountText)) {
+    errors.amount = "Use a plain number with up to 2 decimal places.";
+  }
+
+  if (!categoryInput.value) {
+    errors.category = "Please choose a category.";
+  }
+
+  if (!dateInput.value) {
+    errors.date = "Please select a date.";
+  } else if (isNaN(new Date(dateInput.value + "T00:00:00"))) {
+    errors.date = "Enter a valid date.";
+  }
+
+  const description = descriptionInput.value.trim();
+  if (!description) {
+    errors.description = "Please add a short description.";
+  } else if (description.length > 60) {
+    errors.description = "Description must be 60 characters or fewer.";
+  }
+
+  return errors;
+}
+
+// Writes each message under its field and adds the red "invalid" style.
+// Passing an empty object clears every error.
+function showErrors(errors) {
+  Object.keys(fields).forEach((key) => {
+    const text = errors[key] || "";
+    document.getElementById(key + "-error").textContent = text;
+    fields[key].closest(".field").classList.toggle("invalid", Boolean(text));
+    fields[key].setAttribute("aria-invalid", Boolean(text));
+  });
+
+  // Move the cursor to the first field that has a problem
+  const firstInvalid = Object.keys(fields).find((key) => errors[key]);
+  if (firstInvalid) fields[firstInvalid].focus();
+}
+
+// An error disappears as soon as the user starts fixing that field
+Object.keys(fields).forEach((key) => {
+  const clearError = () => {
+    document.getElementById(key + "-error").textContent = "";
+    fields[key].closest(".field").classList.remove("invalid");
+    fields[key].setAttribute("aria-invalid", "false");
+  };
+  fields[key].addEventListener("input", clearError);
+  fields[key].addEventListener("change", clearError);
+});
+
 /* ---------- 7. Add a transaction ---------- */
 form.addEventListener("submit", (event) => {
   event.preventDefault(); // stop the page from reloading
+
+  // Stop here and show messages if anything is wrong
+  const errors = validateForm();
+  if (Object.keys(errors).length > 0) {
+    showErrors(errors);
+    return;
+  }
 
   const transaction = {
     id: Date.now(),
@@ -124,18 +207,6 @@ form.addEventListener("submit", (event) => {
     date: dateInput.value,
     description: descriptionInput.value.trim()
   };
-
-  // Temporary check. Step 6 replaces this with full validation.
-  if (
-    !transaction.type ||
-    !(transaction.amount > 0) ||
-    !transaction.category ||
-    !transaction.date ||
-    !transaction.description
-  ) {
-    showMessage("Please fill in all fields.");
-    return;
-  }
 
   if (editingId !== null) {
     // Update: replace the matching transaction, keeping its original id
@@ -164,6 +235,7 @@ function resetForm() {
   formTitle.textContent = "Add Transaction";
   submitBtn.innerHTML = '<i class="fa-solid fa-plus"></i> Add Transaction';
   cancelBtn.hidden = true;
+  showErrors({});
 }
 
 cancelBtn.addEventListener("click", resetForm);
@@ -183,6 +255,7 @@ function startEdit(id) {
   amountInput.value = t.amount;
   dateInput.value = t.date;
   descriptionInput.value = t.description;
+  showErrors({});
 
   formTitle.textContent = "Edit Transaction";
   submitBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Changes';
