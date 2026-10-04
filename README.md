@@ -6,7 +6,7 @@ A simple, responsive expense tracker built with plain **HTML, CSS and JavaScript
 
 1. Download or clone this repository:
    ```
-   git clone https://github.com/<aswinc-c123>/expense-tracker-aswin-c.git
+   git clone https://github.com/aswinc-c123/expense-tracker-aswin-c.git
    ```
 2. Open the `expense-tracker-aswin-c` folder.
 3. Double-click `index.html` to open it in your browser (Chrome, Edge, Firefox or Safari).
