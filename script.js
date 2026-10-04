@@ -1,6 +1,6 @@
 /* =========================================================
    Expense Tracker - script.js
-   Step 3: add transactions, save to Local Storage, show list
+   Steps 3-4: add, edit, delete, save to Local Storage, show list
    ========================================================= */
 
 /* ---------- 1. Constants ---------- */
@@ -23,12 +23,17 @@ const list = document.getElementById("transaction-list");
 const emptyState = document.getElementById("empty-state");
 const message = document.getElementById("message");
 
+const formTitle = document.getElementById("form-title");
+const submitBtn = document.getElementById("submit-btn");
+const cancelBtn = document.getElementById("cancel-btn");
+
 const totalIncomeEl = document.getElementById("total-income");
 const totalExpenseEl = document.getElementById("total-expense");
 const balanceEl = document.getElementById("balance");
 
 /* ---------- 3. App state (the single source of truth) ---------- */
 let transactions = loadTransactions();
+let editingId = null; // null = adding a new transaction, otherwise the id being edited
 
 /* ---------- 4. Local Storage ---------- */
 function loadTransactions() {
@@ -129,14 +134,88 @@ form.addEventListener("submit", (event) => {
     return;
   }
 
-  transactions.push(transaction);
+  if (editingId !== null) {
+    // Update: replace the matching transaction, keeping its original id
+    transactions = transactions.map((t) =>
+      t.id === editingId ? { ...transaction, id: editingId } : t
+    );
+    showMessage("Transaction updated.");
+  } else {
+    // Add: put the new transaction in the array
+    transactions.push(transaction);
+    showMessage("Transaction added.");
+  }
+
   saveTransactions();
   render();
+  resetForm();
+});
 
+/* ---------- 7b. Reset the form back to "add" mode ---------- */
+function resetForm() {
+  editingId = null;
   form.reset();
   populateCategories("");
   dateInput.value = todayString();
-  showMessage("Transaction added.");
+
+  formTitle.textContent = "Add Transaction";
+  submitBtn.innerHTML = '<i class="fa-solid fa-plus"></i> Add Transaction';
+  cancelBtn.hidden = true;
+}
+
+cancelBtn.addEventListener("click", resetForm);
+
+/* ---------- 7c. Edit a transaction ---------- */
+function startEdit(id) {
+  const t = transactions.find((item) => item.id === id);
+  if (!t) return;
+
+  editingId = id;
+
+  // Fill the form with the existing values.
+  // The type must be set first so the right categories exist before we pick one.
+  typeInput.value = t.type;
+  populateCategories(t.type);
+  categoryInput.value = t.category;
+  amountInput.value = t.amount;
+  dateInput.value = t.date;
+  descriptionInput.value = t.description;
+
+  formTitle.textContent = "Edit Transaction";
+  submitBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Changes';
+  cancelBtn.hidden = false;
+
+  form.scrollIntoView({ behavior: "smooth", block: "start" });
+  amountInput.focus();
+}
+
+/* ---------- 7d. Delete a transaction ---------- */
+function deleteTransaction(id) {
+  if (!confirm("Delete this transaction?")) return;
+
+  transactions = transactions.filter((t) => t.id !== id);
+
+  // If the deleted item was being edited, leave edit mode
+  if (editingId === id) resetForm();
+
+  saveTransactions();
+  render();
+  showMessage("Transaction deleted.");
+}
+
+/* ---------- 7e. One click listener for all Edit/Delete buttons ---------- */
+list.addEventListener("click", (event) => {
+  const button = event.target.closest("button");
+  if (!button) return;
+
+  const item = button.closest(".transaction");
+  const id = Number(item.dataset.id);
+
+  if (button.classList.contains("btn-edit")) {
+    startEdit(id);
+  } else if (button.classList.contains("btn-delete")) {
+    deleteTransaction(id);
+  }
 });
 
 /* ---------- 8. Rendering ---------- */
